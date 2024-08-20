@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"gopkg.in/yaml.v3"
@@ -17,10 +18,12 @@ var templateDir = "templates/"
 var funcMap = template.FuncMap{
 	"getInputs":  getInputTable,
 	"getOutputs": getOutputTable,
+	"genUsage":   genUsage,
 }
 
 type Action struct {
 	Name        string            `yaml:"name"`
+	Use         string            `yaml:"use"`
 	Description string            `yaml:"description,omitempty"`
 	Inputs      map[string]Input  `yaml:"inputs,omitempty"`
 	Outputs     map[string]Output `yaml:"outputs"`
@@ -45,7 +48,17 @@ func readActionFile(file string) (*Action, error) {
 	action := &Action{}
 	err = yaml.Unmarshal(b, &action)
 	action.setInputType()
+	action.Use = getBasePath(file)
 	return action, err
+}
+
+func getBasePath(file string) string {
+	absPath, err := filepath.Abs(file)
+	if err != nil {
+		return ""
+	}
+	dir, _ := filepath.Split(absPath)
+	return filepath.Base(dir)
 }
 
 func writeDocs(file string, data []byte) error {
@@ -90,6 +103,19 @@ func getOutputTable(outputs map[string]Output) string {
 	buf.WriteString("| --- | --- |\n")
 	for name, output := range outputs {
 		buf.WriteString(fmt.Sprintf("| %s | %s |\n", name, output.Description))
+	}
+	return buf.String()
+}
+
+func genUsage(a Action) string {
+	usage := fmt.Sprintf(`
+- name: %s
+  uses: %s
+  with:`, a.Name, a.Use)
+	buf := &bytes.Buffer{}
+	buf.WriteString(usage)
+	for input, value := range a.Inputs {
+		buf.WriteString(fmt.Sprintf("\n    %s: %s", input, value.Default))
 	}
 	return buf.String()
 }
