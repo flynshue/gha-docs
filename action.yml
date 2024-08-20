@@ -1,0 +1,21 @@
+name: Test Action
+description: "Description for fake Test Action"
+inputs:
+  input-one:
+    description: 'Description for input-one'
+    required: true
+    default: 'one'
+  input-two:
+    description: 'Description for input-two'
+    required: false
+    default: 'two'
+  thing-on:
+    description: 'Turn thing on'
+    type: boolean
+    default: 'false'
+outputs:
+  thing-one:
+    description: Description for output thing-one
+runs:
+  using: 'node20'
+  main: '../invoke-binary.js'
