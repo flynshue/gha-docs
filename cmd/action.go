@@ -27,6 +27,7 @@ type Action struct {
 	Description string            `yaml:"description,omitempty"`
 	Inputs      map[string]Input  `yaml:"inputs,omitempty"`
 	Outputs     map[string]Output `yaml:"outputs"`
+	ActionDir   string            `yaml:"dir"`
 }
 
 type Output struct {
@@ -48,7 +49,7 @@ func readActionFile(file string) (*Action, error) {
 	action := &Action{}
 	err = yaml.Unmarshal(b, &action)
 	action.setInputType()
-	action.Use = getBasePath(file)
+	// action.getPath(file)
 	return action, err
 }
 
@@ -57,8 +58,19 @@ func getBasePath(file string) string {
 	if err != nil {
 		return ""
 	}
+	fmt.Println(absPath)
 	dir, _ := filepath.Split(absPath)
 	return filepath.Base(dir)
+}
+
+func (a *Action) getPath(file string) {
+	absPath, err := filepath.Abs(file)
+	if err != nil {
+		return
+	}
+	dir, _ := filepath.Split(absPath)
+	a.ActionDir = dir
+	a.Use = filepath.Base(dir)
 }
 
 func writeDocs(file string, data []byte) error {

@@ -8,7 +8,6 @@ import (
 
 var testAction = &Action{
 	Name:        "Test Action",
-	Use:         "test-action",
 	Description: "Description for fake Test Action",
 	Inputs: map[string]Input{
 		"input-one": {"Description for input-one", true, "one", "string"},
@@ -83,6 +82,17 @@ func Test_getBasePath(t *testing.T) {
 	got := getBasePath("../test-action/action.yml")
 	if got != want {
 		t.Errorf("got %s; wanted %s", got, want)
+	}
+}
+
+func TestActionGetPath(t *testing.T) {
+	a := &Action{}
+	a.getPath("../test-action/action.yml")
+	if a.ActionDir == "" {
+		t.Error()
+	}
+	if a.Use != "test-action" {
+		t.Error()
 	}
 }
 

@@ -21,13 +21,7 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gha-docs",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Auto generate documentation for GitHub Actions",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,6 +29,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return err
 		}
+		action.getPath(actionFile)
 		b, err := action.generateDocs()
 		if err != nil {
 			return err
@@ -42,6 +37,9 @@ to quickly create a Cobra application.`,
 		if dryRun {
 			fmt.Println(string(b))
 			return nil
+		}
+		if outputFile == "README.md" {
+			outputFile = action.ActionDir + outputFile
 		}
 		return writeDocs(outputFile, b)
 	},
@@ -70,7 +68,7 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.Flags().StringVarP(&actionFile, "action-file", "f", "action.yml", "Github action file")
 	rootCmd.Flags().BoolVar(&dryRun, "dry-run", false, "render the markdown docs and print to stdout")
-	rootCmd.Flags().StringVarP(&outputFile, "output-file", "o", "README.md", "markdown file path that rendered documentation will be written to")
+	rootCmd.Flags().StringVarP(&outputFile, "output-file", "o", "README.md", "markdown file path relative to each action directory where rendered documentation will be written")
 }
 
 // initConfig reads in config file and ENV variables if set.
