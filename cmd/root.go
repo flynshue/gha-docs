@@ -22,6 +22,8 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "gha-docs",
 	Short: "Auto generate documentation for GitHub Actions",
+	Example: `# Generate docs from test-action/action.yml and write to test-action/README.md
+gha-docs -f test-action/action.yml`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -61,7 +63,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gha-docs.yaml)")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gha-docs.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
