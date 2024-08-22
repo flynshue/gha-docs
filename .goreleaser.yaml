@@ -15,9 +15,9 @@ builds:
       - darwin
     ldflags:
       - >-
-        -X github.com/Bandwidth/gha-docs/cmd.Version={{ .Tag }}
-        -X github.com/Bandwidth/gha-docs/cmd.GitCommit={{ .Commit }}
-        -X github.com/Bandwidth/gha-docs/cmd.BuildDate={{ .Date }}
+        -X github.com/flynshue/gha-docs/cmd.Version={{ .Tag }}
+        -X github.com/flynshue/gha-docs/cmd.GitCommit={{ .Commit }}
+        -X github.com/flynshue/gha-docs/cmd.BuildDate={{ .Date }}
 
 archives:
   - format: tar.gz
