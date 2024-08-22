@@ -54,7 +54,7 @@ func TestAction_setInputType(t *testing.T) {
 	}
 }
 
-func ExampleGetInputTable() {
+func Example_getInputTable() {
 	inputs := map[string]Input{
 		"input-one": {"Description for input-one", true, "one", "string"},
 	}
