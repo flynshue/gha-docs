@@ -1,12 +1,17 @@
 # Overview
 {{ .Name}} {{ .Description}}
 
-{{if .Inputs}}
+{{ if .Inputs -}}
 ## Inputs
 {{getInputs .Inputs}}
-{{end}}
+{{ end -}}
 
-{{if .Outputs}}
+{{if .Outputs -}}
 ## Outputs
 {{getOutputs .Outputs}}
-{{end}}
+{{end -}}
+
+## Example Usage
+```
+{{- genUsage .}}
+```

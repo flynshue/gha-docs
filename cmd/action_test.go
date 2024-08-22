@@ -10,17 +10,17 @@ var testAction = &Action{
 	Name:        "Test Action",
 	Description: "Description for fake Test Action",
 	Inputs: map[string]Input{
-		"input-one": Input{"Description for input-one", true, "one", "string"},
-		"input-two": Input{"Description for input-two", false, "two", "string"},
-		"thing-on":  Input{"Turn thing on", false, "false", "boolean"},
+		"input-one": {"Description for input-one", true, "one", "string"},
+		"input-two": {"Description for input-two", false, "two", "string"},
+		"thing-on":  {"Turn thing on", false, "false", "boolean"},
 	},
 	Outputs: map[string]Output{
-		"thing-one": Output{"Description for output thing-one"},
+		"thing-one": {"Description for output thing-one"},
 	},
 }
 
 func Test_readActionFile(t *testing.T) {
-	got, err := readActionFile("../action.yml")
+	got, err := readActionFile("../test-action/action.yml")
 	if !reflect.DeepEqual(testAction, got) {
 		fmt.Println("got: ", got)
 		fmt.Println("want: ", testAction)
@@ -42,7 +42,7 @@ func TestAction_setInputType(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			action := &Action{
 				Inputs: map[string]Input{
-					tc.name: Input{InputType: tc.inputType},
+					tc.name: {InputType: tc.inputType},
 				},
 			}
 			action.setInputType()
@@ -54,9 +54,9 @@ func TestAction_setInputType(t *testing.T) {
 	}
 }
 
-func ExampleGetInputTable() {
+func Example_getInputTable() {
 	inputs := map[string]Input{
-		"input-one": Input{"Description for input-one", true, "one", "string"},
+		"input-one": {"Description for input-one", true, "one", "string"},
 	}
 	fmt.Println(getInputTable(inputs))
 	// Output:
@@ -67,7 +67,7 @@ func ExampleGetInputTable() {
 
 func ExampleGetOutputTable() {
 	outputs := map[string]Output{
-		"thing-one": Output{"Description for output thing-one"},
+		"thing-one": {"Description for output thing-one"},
 	}
 	fmt.Println(getOutputTable(outputs))
 
@@ -75,4 +75,40 @@ func ExampleGetOutputTable() {
 	// | Name | Description |
 	// | --- | --- |
 	// | thing-one | Description for output thing-one |
+}
+
+func Test_getBasePath(t *testing.T) {
+	want := "test-action"
+	got := getBasePath("../test-action/action.yml")
+	if got != want {
+		t.Errorf("got %s; wanted %s", got, want)
+	}
+}
+
+func TestActionGetPath(t *testing.T) {
+	a := &Action{}
+	a.getPath("../test-action/action.yml")
+	if a.ActionDir == "" {
+		t.Error()
+	}
+	if a.Use != "test-action" {
+		t.Error()
+	}
+}
+
+func ExampleGenUsage() {
+	a := Action{
+		Name: "Test Action",
+		Use:  "test-action",
+		Inputs: map[string]Input{
+			"input-one": {Default: "one"},
+		},
+	}
+	fmt.Println(genUsage(a))
+
+	// Output:
+	// - name: Test Action
+	//   uses: test-action
+	//   with:
+	//     input-one: one
 }
