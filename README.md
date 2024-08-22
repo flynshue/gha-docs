@@ -26,14 +26,7 @@ Test Action Description for fake Test Action
 | thing-one | Description for output thing-one |
 
 ## Example Usage
-```
-- name: Test Action
-  uses: test-action
-  with:
-    input-one: one
-    input-two: two
-    thing-on: false
-```
+...
 ```
 
 
