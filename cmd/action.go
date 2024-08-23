@@ -5,7 +5,9 @@ import (
 	"embed"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"gopkg.in/yaml.v3"
@@ -53,16 +55,6 @@ func readActionFile(file string) (*Action, error) {
 	return action, err
 }
 
-func getBasePath(file string) string {
-	absPath, err := filepath.Abs(file)
-	if err != nil {
-		return ""
-	}
-	fmt.Println(absPath)
-	dir, _ := filepath.Split(absPath)
-	return filepath.Base(dir)
-}
-
 func (a *Action) getPath(file string) {
 	absPath, err := filepath.Abs(file)
 	if err != nil {
@@ -70,7 +62,41 @@ func (a *Action) getPath(file string) {
 	}
 	dir, _ := filepath.Split(absPath)
 	a.ActionDir = dir
-	a.Use = filepath.Base(dir)
+	url, err := gitRepoUrl(dir)
+	if err != nil {
+		a.Use = filepath.Base(dir)
+		return
+	}
+	owner, repo := parseGitUrl(url)
+	a.Use = fmt.Sprintf("%s/%s/%s@%s", owner, repo, filepath.Base(dir), gitTag(dir))
+}
+
+func gitRepoUrl(path string) (string, error) {
+	b, err := exec.Command("git", "-C", path, "ls-remote", "--get-url").Output()
+	if err != nil {
+		return "", err
+	}
+	url := strings.TrimSpace(string(b))
+	return url, nil
+}
+
+func gitTag(path string) string {
+	b, err := exec.Command("git", "-C", path, "tag", "-l", "--sort=committerdate").Output()
+	if err != nil {
+		return "VERSION"
+	}
+	lines := bytes.Split(bytes.TrimSpace(b), []byte("\n"))
+	latest := string(lines[len(lines)-1])
+	return latest
+}
+
+func parseGitUrl(gitUrl string) (owner, repo string) {
+	fullRepoName := strings.Trim(strings.SplitAfter(gitUrl, ".com")[1], ":")
+	fullRepoName = strings.TrimLeft(fullRepoName, "/")
+	repoSplit := strings.Split(fullRepoName, "/")
+	owner = repoSplit[0]
+	repo = strings.TrimSuffix(repoSplit[1], ".git")
+	return
 }
 
 func writeDocs(file string, data []byte) error {
@@ -127,7 +153,11 @@ func genUsage(a Action) string {
 	buf := &bytes.Buffer{}
 	buf.WriteString(usage)
 	for input, value := range a.Inputs {
-		buf.WriteString(fmt.Sprintf("\n    %s: %s", input, value.Default))
+		inputValue := value.Default
+		if inputValue == "" {
+			inputValue = "<CHANGEME>"
+		}
+		buf.WriteString(fmt.Sprintf("\n    %s: %s", input, inputValue))
 	}
 	return buf.String()
 }

@@ -16,9 +16,9 @@ Test Action Description for fake Test Action
 ## Example Usage
 ```
 - name: Test Action
-  uses: test-action
+  uses: flynshue/gha-docs/test-action@VERSION
   with:
+    thing-on: false
     input-one: one
     input-two: two
-    thing-on: false
 ```
