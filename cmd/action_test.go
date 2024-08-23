@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -77,26 +78,19 @@ func ExampleGetOutputTable() {
 	// | thing-one | Description for output thing-one |
 }
 
-func Test_getBasePath(t *testing.T) {
-	want := "test-action"
-	got := getBasePath("../test-action/action.yml")
-	if got != want {
-		t.Errorf("got %s; wanted %s", got, want)
-	}
-}
-
 func TestActionGetPath(t *testing.T) {
 	a := &Action{}
 	a.getPath("../test-action/action.yml")
 	if a.ActionDir == "" {
 		t.Error()
 	}
-	if a.Use != "test-action" {
-		t.Error()
+	want := "flynshue/gha-docs/test-action@VERSION"
+	if a.Use != want {
+		t.Errorf("got: %s; wanted: %s", a.Use, want)
 	}
 }
 
-func ExampleGenUsage() {
+func ExampleGenUsage_WithDefault() {
 	a := Action{
 		Name: "Test Action",
 		Use:  "test-action",
@@ -111,4 +105,71 @@ func ExampleGenUsage() {
 	//   uses: test-action
 	//   with:
 	//     input-one: one
+}
+
+func ExampleGenUsage_WithOutDefault() {
+	a := Action{
+		Name: "Test Action",
+		Use:  "test-action",
+		Inputs: map[string]Input{
+			"input-one": {Default: ""},
+		},
+	}
+	fmt.Println(genUsage(a))
+
+	// Output:
+	// - name: Test Action
+	//   uses: test-action
+	//   with:
+	//     input-one: ${{ example.INPUT-ONE }}
+}
+
+func Test_parseGitUrl(t *testing.T) {
+	testCases := []struct {
+		name   string
+		gitUrl string
+		owner  string
+		repo   string
+	}{
+		{"ssh", "git@github.com:flynshue/gha-docs.git", "flynshue", "gha-docs"},
+		{"https", "https://github.com/flynshue/gha-docs.git", "flynshue", "gha-docs"},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			owner, repo := parseGitUrl(tc.gitUrl)
+			if tc.owner != owner {
+				t.Errorf("got: %s; wanted: %s", owner, tc.owner)
+			}
+			if tc.repo != repo {
+				t.Errorf("got: %s; wanted: %s", repo, tc.repo)
+			}
+		})
+	}
+}
+
+func Test_GitRepo(t *testing.T) {
+	t.Run("validGitRepo", func(t *testing.T) {
+		_, err := gitRepoUrl(".")
+		if err != nil {
+			t.Error(err)
+		}
+	})
+	t.Run("invalidGitRepo", func(t *testing.T) {
+		repoDir := "/tmp/fake-action"
+		if err := os.Mkdir(repoDir, 0775); err != nil {
+			t.Error(err)
+		}
+		defer os.RemoveAll(repoDir)
+		b, err := os.ReadFile("../test-action/action.yml")
+		if err != nil {
+			t.Error(err)
+		}
+		if err := os.WriteFile(repoDir+"/action.yml", b, 0644); err != nil {
+			t.Error(err)
+		}
+		_, err = gitRepoUrl(repoDir)
+		if err == nil {
+			t.Error("valid git repo found; should not be a git repository")
+		}
+	})
 }
