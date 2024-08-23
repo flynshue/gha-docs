@@ -84,10 +84,11 @@ func TestActionGetPath(t *testing.T) {
 	if a.ActionDir == "" {
 		t.Error()
 	}
-	want := "flynshue/gha-docs/test-action@VERSION"
-	if a.Use != want {
-		t.Errorf("got: %s; wanted: %s", a.Use, want)
+	notWant := "flynshue/gha-docs/test-action@VERSION"
+	if a.Use == notWant {
+		t.Error()
 	}
+	fmt.Println(a.Use)
 }
 
 func ExampleGenUsage_WithDefault() {
@@ -121,7 +122,7 @@ func ExampleGenUsage_WithOutDefault() {
 	// - name: Test Action
 	//   uses: test-action
 	//   with:
-	//     input-one: ${{ example.INPUT-ONE }}
+	//     input-one: <CHANGEME>
 }
 
 func Test_parseGitUrl(t *testing.T) {
@@ -172,4 +173,12 @@ func Test_GitRepo(t *testing.T) {
 			t.Error("valid git repo found; should not be a git repository")
 		}
 	})
+}
+
+func Test_gitTag(t *testing.T) {
+	tag := gitTag("./")
+	if tag == "VERSION" {
+		t.Error()
+	}
+	fmt.Println(tag)
 }

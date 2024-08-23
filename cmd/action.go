@@ -68,7 +68,7 @@ func (a *Action) getPath(file string) {
 		return
 	}
 	owner, repo := parseGitUrl(url)
-	a.Use = fmt.Sprintf("%s/%s/%s@VERSION", owner, repo, filepath.Base(dir))
+	a.Use = fmt.Sprintf("%s/%s/%s@%s", owner, repo, filepath.Base(dir), gitTag(dir))
 }
 
 func gitRepoUrl(path string) (string, error) {
@@ -78,6 +78,16 @@ func gitRepoUrl(path string) (string, error) {
 	}
 	url := strings.TrimSpace(string(b))
 	return url, nil
+}
+
+func gitTag(path string) string {
+	b, err := exec.Command("git", "-C", path, "tag", "-l", "--sort=committerdate").Output()
+	if err != nil {
+		return "VERSION"
+	}
+	lines := bytes.Split(bytes.TrimSpace(b), []byte("\n"))
+	latest := string(lines[len(lines)-1])
+	return latest
 }
 
 func parseGitUrl(gitUrl string) (owner, repo string) {
@@ -145,7 +155,7 @@ func genUsage(a Action) string {
 	for input, value := range a.Inputs {
 		inputValue := value.Default
 		if inputValue == "" {
-			inputValue = fmt.Sprintf("${{ example.%s }}", strings.ToUpper(input))
+			inputValue = "<CHANGEME>"
 		}
 		buf.WriteString(fmt.Sprintf("\n    %s: %s", input, inputValue))
 	}
